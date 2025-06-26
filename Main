@@ -1,0 +1,136 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+class halflife:
+    def __init__ (self):
+        self.N_o = None
+        self.N = None
+        self.time = None
+        self. halflife = None
+        self.unknown_variable = None
+        
+    def ask_question(self):
+        self.unknown_variable = input("What is your unknown variable? (1.N_o, 2.N, 3.T, 4.T1/2): ")
+        if self.unknown_variable == "1": #N_o
+            print("You have chosen to solve for its original mass, please answer the following questions: ")
+            self.N = float(input("What is the new mass value?: "))
+            self.time = float(input("What is the time period measured?: "))
+            self.halflife = float(input("What is the half life of of this sample?: "))
+            
+        elif self.unknown_variable == "2": #N
+            print("You have chosen to solve for its new mass, please answer the following questions: ")
+            self.N_o = float(input("What is the original mass of this sample?: "))
+            self.time = float(input("What is the time period measured?: "))
+            self.halflife = float(input("What is the half life of this sample?: "))
+            
+        elif self.unknown_variable == "3": #T
+            print("You have chosen to solve for the time it took, please answer the following questions: ")
+            self.N = float(input("What is the new mass value?: "))
+            self.N_o = float(input("What is the original mass of this sample?: "))
+            self.halflife = float(input("What is the half life of this sample?: "))
+        elif self.unknown_variable == "4": #T1/2
+            print("You have chosen to solve for its half life, please answer the following questions: ")
+            self.N = float(input("What is the new mass value?: "))
+            self.N_o = float(input("What is the original mass of this sample?: "))
+            self.time = float(input("What is the time period measured?: "))
+            
+        else:
+            ("try again")
+            
+    def calcs(self):
+        if self.unknown_variable == "1":
+            self.N_o = self.N * (2 ** (self.time/self.halflife))
+            print (f"The original value is {self.N_o:.2f}")
+        if self.unknown_variable == "2":
+            self.N = self.N_o * (1/2 ** (self.time/self.halflife))
+            print(f"The new value is {self.N: .2f}")
+        
+        #iteration (alot easier)
+        if self.unknown_variable == "3":
+            t = 0
+            dt = 0.01
+            N_current = self.N_o
+            
+            #iteration loop to compare N_curent to input of N.
+            #If N_current reach something smaller or equal to N input, loop will stop
+            while N_current > self.N and t < 1000:
+                #adds 0.01 to t
+                t += dt
+                #uses t to solve for N_current
+                N_current = self.N_o * (0.5) ** (t / self.halflife)
+
+            #put number in self.t
+            self.time = t
+            print(f"The estimated time to decay to {self.N:.2f} is approximately {self.time:.2f} years.")
+        
+        #recursion PRINT
+        if self.unknown_variable == "4":
+            self.halflife = self.find_halflife(self.N, 0.01, 0.01)
+            if self.halflife is not None:
+                print(f"The half life of the sample is {self.halflife:.2f} years.")
+            else:
+                print("Time could not be determined within the limit.")
+            
+    #recursion            
+    def find_halflife(self, N_target, halflife = 0.01, dt = 0.001):
+        #variabe for current tate to compare with the input N_target
+        N_current = self.N_o * (1/2 ** (self.time/halflife))
+            
+        #Checks the difference between the current state and the target.
+        #If target is less than 0.1 then it should be fine enough
+        if abs(N_current - N_target) < 0.1:
+            #return halflife value (should be the final half life value)
+            return halflife
+        
+        #Limit for recurion
+        if halflife > 1000:
+            print("Half life is too big")
+            return None
+        
+        #if current - target is NOT 0.1, halflife i added 0.01 to keep increasing N_current
+        return self.find_halflife(N_target, halflife + dt, dt)
+            
+    #graph
+    def graph(self):
+        np.random.seed(1)       
+        
+        #times 2 so endpoint doesnt end up shorter than the halflife line
+        end_point = self.halflife *2
+        t = np.linspace(0, end_point, 500)
+        N = self.N_o * (0.5) ** (t / self.halflife)
+        
+        #for half life line
+        half_amount = self.N_o/2
+        plt.figure(figsize=(8, 5))
+        plt.plot(t, N, color='darkred', label="Decay curve")
+        #for halflife N
+        plt.axhline(y= half_amount, color='blue', linestyle='--', label='Half-life amount')
+
+        #for halflife t
+        plt.axvline(x=self.halflife, color='green', linestyle='--', label='Half-life time')
+        
+        #Labels
+        plt.title("Radioactive Decay Over Time")
+        plt.xlabel("Time")
+        plt.ylabel("Remaining Amount")
+        #grid
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+        #make sure y starts at 0
+        plt.ylim(bottom=0)
+        plt.show()
+
+#objetcs
+solver = halflife()
+solver.ask_question()
+solver.calcs()
+solver.graph()
+        
+
+
+
+
+
+
+
